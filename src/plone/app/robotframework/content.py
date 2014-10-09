@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
-from zope.component import queryUtility
 from Products.CMFCore.utils import getToolByName
 from plone.app.robotframework.remote import RemoteLibrary
 from plone.i18n.normalizer.interfaces import IURLNormalizer
 from plone.uuid.interfaces import IUUID
-from zope.component.hooks import getSite
-from zope.component import getUtility
 from zope.component import ComponentLookupError
+from zope.component import getUtility
+from zope.component import queryUtility
+from zope.component.hooks import getSite
+from zope.schema import Choice
+from zope.schema import List
+from zope.schema import Set
 
 from plone.app.robotframework.config import HAS_DEXTERITY
 
@@ -27,6 +30,26 @@ if HAS_DEXTERITY:
 
 import os
 
+
+# Do some trivial transforms to adapt value better to the field
+def prepare(value, field):
+    if not IFromUnicode.providedBy(field):
+        value = value
+    elif isinstance(field, Set) and isinstance(value, unicode):
+        value = set((value,))
+    elif isinstance(field, Set) and isinstance(value, tuple):
+        value = set(value)
+    elif isinstance(field, Set) and isinstance(value, list):
+        value = set(value)
+    elif isinstance(field, List) and isinstance(value, unicode):
+        value = list((value,))
+    elif (isinstance(field, Choice)
+          and isinstance(value, list) and len(value) == 1):
+        value = value[0]
+    elif not isinstance(value, unicode):
+        value = unicode(str(value), 'utf-8', 'ignore')
+    return value
+ to adapt value better to the field
 
 class Content(RemoteLibrary):
 
@@ -119,13 +142,7 @@ class Content(RemoteLibrary):
             for name, field in fields.items():
                 widget = queryMultiAdapter((field, getRequest()), IFieldWidget)
                 if widget and name in kwargs:
-                    if not IFromUnicode.providedBy(field):
-                        value = kwargs[name]
-                    elif isinstance(kwargs[name], unicode):
-                        value = kwargs[name]
-                    else:
-                        value = unicode(str(kwargs[name]), 'utf-8',
-                                        errors='ignore')
+                    value = prepare(kwargs[name], field)
                     converter = IDataConverter(widget)
                     dm = queryMultiAdapter((content, field), IDataManager)
                     if dm:
