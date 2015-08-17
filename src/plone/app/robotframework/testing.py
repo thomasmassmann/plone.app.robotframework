@@ -37,6 +37,9 @@ else:
     HAS_SPEAKJS = True
 from robot.libraries.BuiltIn import BuiltIn
 
+HAS_PLONE_5 = \
+    4 > int(pkg_resources.get_distribution('Products.CMFPlone').version[0]) < 6
+
 
 class SimplePublicationLayer(Layer):
     defaultBases = (PLONE_FIXTURE,)
@@ -161,6 +164,13 @@ class PloneRobotFixture(PloneSandboxLayer):
             return filter(bool, [s.strip() for s in candidates])
 
     def setUpZope(self, app, configurationContext):
+        if HAS_PLONE_5:
+            z2.installProduct(app, 'Products.DateRecurringIndex')
+            import plone.app.contenttypes
+            xmlconfig.file('configure.zcml',
+                           plone.app.contenttypes,
+                           context=configurationContext)
+
         for locales in self._get_robot_variable('REGISTER_TRANSLATIONS'):
             if locales and os.path.isdir(locales):
                 from zope.i18n.zcml import registerTranslations
@@ -193,6 +203,9 @@ class PloneRobotFixture(PloneSandboxLayer):
             z2.installProduct(app, name)
 
     def setUpPloneSite(self, portal):
+        if HAS_PLONE_5:
+            applyProfile(portal, 'plone.app.contenttypes:default')
+
         for name in self._get_robot_variable('APPLY_PROFILES'):
             self.applyProfile(portal, name)
 

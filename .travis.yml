@@ -10,6 +10,9 @@ cache:
   - eggs
   - ~/.rvm/gems
   - ~/.gem/specs
+before_install:
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
 install:
 - python bootstrap.py -c test-$PLONE_VERSION.cfg
 - bin/buildout -N -t 3 -c test-$PLONE_VERSION.cfg
@@ -25,9 +28,9 @@ after_script:
 - travis-artifacts upload --target-path latest --path parts/test
 env:
   matrix:
-  - PLONE_VERSION=4.x ROBOT_BROWSER=firefox
+  - PLONE_VERSION=4.x ROBOT_REMOTE_URL=""
   - PLONE_VERSION=4.x ROBOT_BROWSER=ie
-  - PLONE_VERSION=5.x ROBOT_BROWSER=firefox
+  - PLONE_VERSION=5.x ROBOT_REMOTE_URL=""
   - PLONE_VERSION=5.x ROBOT_BROWSER=ie
   global:
   - ARTIFACTS_S3_BUCKET=plone.app.robotframework
