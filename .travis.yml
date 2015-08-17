@@ -8,6 +8,8 @@ addons:
 cache:
   directories:
   - eggs
+  - ~/.rvm/gems
+  - ~/.gem/specs
 install:
 - python bootstrap.py -c travis.cfg
 - bin/buildout -N -t 3 -c travis.cfg ${VERSIONS}
