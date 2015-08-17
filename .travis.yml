@@ -25,10 +25,11 @@ after_script:
 - travis-artifacts upload --target-path latest --path docs/html
 - travis-artifacts upload --target-path latest --path parts/test
 env:
-  - PLONE_VERSION=4.x
-  - PLONE_VERSION=5.x
-  - ROBOT_BROWSER=firefox
-  - ROBOT_BROWSER=ie
+  matrix:
+  - PLONE_VERSION=4.x ROBOT_BROWSER=firefox
+  - PLONE_VERSION=4.x ROBOT_BROWSER=ie
+  - PLONE_VERSION=5.x ROBOT_BROWSER=firefox
+  - PLONE_VERSION=5.x ROBOT_BROWSER=ie
   global:
   - ARTIFACTS_S3_BUCKET=plone.app.robotframework
   - ROBOT_BUILD_NUMBER=travis-$TRAVIS_BUILD_NUMBER
